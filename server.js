@@ -13,9 +13,19 @@ app.use("/api", router);
 router.route('/random').get(function(req, res) {
    var from = req.query.from;
    var to = req.query.to;
+   var avoid = req.query.avoid;
+
+   // Build the Google Maps GET request
+   var gmRequest = "https://maps.googleapis.com/maps/api/directions/json";
+   gmRequest += "?origin=" + from;
+   gmRequest += "&destination=" + to;
+   if (avoid) {
+      gmRequest += "&avoid=" + avoid;
+   }
+   gmRequest += "&key=" + process.env.GOOGLE_MAPS_API_KEY;
 
    request(
-      "https://maps.googleapis.com/maps/api/directions/json?origin=" + from + "&destination=" + to + "&key=" + process.env.GOOGLE_MAPS_API_KEY,
+      gmRequest,
       function(error, response, body) {
          var json = JSON.parse(body);
 
@@ -60,7 +70,7 @@ router.route('/random').get(function(req, res) {
 
             newDistance = GeoUtils.calculateDistance(newLocation.lat, newLocation.lng, endLocation.lat, endLocation.lng);
          }
-         
+
          console.log("Distance of new location from longest step location: " + GeoUtils.calculateDistance(newLocation.lat, newLocation.lng, longestStepLocation.lat, longestStepLocation.lng));
 
          // Return a route on Google Maps that includes the new location as a waypoint
